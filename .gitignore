@@ -1,0 +1,11 @@
+.env
+data/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+agent-tools/
+*.sqlite
+*.sqlite-*
+tg-bot/
+tg-bot.tar.gz
