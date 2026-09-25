@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from aiohttp.test_utils import TestServer
 
-from app.config import Settings
+from app.config import Settings, load_settings
 from app.conversation import MISSING_KEY, Conversation
 from app.db import Database
 from app.http_admin import build_app
@@ -34,6 +34,18 @@ async def db(tmp_path: Path):
     await database.open()
     yield database
     await database.close()
+
+
+def test_admin_username_match(monkeypatch) -> None:
+    monkeypatch.setenv("ADMIN_USERNAMES", "ArqTras, otherAdmin")
+    monkeypatch.setenv("DATA_DIR", "/tmp/kontekst-test-data")
+    monkeypatch.setenv("SOURCES_DIR", "/tmp/kontekst-test-sources")
+    settings = load_settings()
+    assert settings.is_admin_username("ArqTras")
+    assert settings.is_admin_username("@arqtras")
+    assert settings.is_admin_username("otherAdmin")
+    assert not settings.is_admin_username("someone_else")
+    assert not settings.is_admin_username(None)
 
 
 def test_chunks_and_query() -> None:
@@ -103,6 +115,7 @@ async def test_status_page_and_admin_gate(db: Database, tmp_path: Path) -> None:
         llm_api_key="",
         llm_model="deepseek-chat",
         admin_token="secret",
+        admin_usernames=("ArqTras",),
         data_dir=tmp_path,
         sources_dir=tmp_path / "sources",
         http_host="127.0.0.1",

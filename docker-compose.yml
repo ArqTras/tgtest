@@ -58,6 +58,7 @@ services:
       LLM_MODEL: ${LLM_MODEL:-qwen3-14b-bot}
       LLM_TIMEOUT: ${LLM_TIMEOUT:-300}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
+      ADMIN_USERNAMES: ${ADMIN_USERNAMES:-ArqTras}
       HTTP_PORT: "8787"
       DATA_DIR: /data
       SOURCES_DIR: /sources

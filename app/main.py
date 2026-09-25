@@ -78,8 +78,9 @@ async def run() -> None:
             conversation=conversation,
             allow_private_urls=settings.allow_private_urls,
             username=me.username or "",
+            admin_usernames=settings.admin_usernames,
         )
-        log.info("Telegram: @%s", me.username)
+        log.info("Telegram: @%s (admins: %s)", me.username, ",".join(settings.admin_usernames))
         await dp.start_polling(bot)
     finally:
         scanner.cancel()

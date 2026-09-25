@@ -19,6 +19,7 @@ class Settings:
     llm_api_key: str
     llm_model: str
     admin_token: str
+    admin_usernames: tuple[str, ...]
     data_dir: Path
     sources_dir: Path
     http_host: str
@@ -40,6 +41,22 @@ class Settings:
     def db_path(self) -> Path:
         return self.data_dir / "kontekst.sqlite"
 
+    def is_admin_username(self, username: str | None) -> bool:
+        if not username:
+            return False
+        needle = username.lstrip("@").casefold()
+        return needle in {name.casefold() for name in self.admin_usernames}
+
+
+def _admin_usernames() -> tuple[str, ...]:
+    raw = os.environ.get("ADMIN_USERNAMES", "ArqTras")
+    names = []
+    for part in raw.split(","):
+        name = part.strip().lstrip("@")
+        if name:
+            names.append(name)
+    return tuple(names) or ("ArqTras",)
+
 
 def load_settings() -> Settings:
     data_dir = Path(os.environ.get("DATA_DIR", "data")).resolve()
@@ -59,6 +76,7 @@ def load_settings() -> Settings:
         llm_api_key=os.environ.get("LLM_API_KEY", "ollama").strip(),
         llm_model=os.environ.get("LLM_MODEL", "qwen3-14b-bot").strip(),
         admin_token=os.environ.get("ADMIN_TOKEN", "").strip(),
+        admin_usernames=_admin_usernames(),
         data_dir=data_dir,
         sources_dir=sources_dir,
         http_host=os.environ.get("HTTP_HOST", "0.0.0.0").strip() or "0.0.0.0",

@@ -14,8 +14,15 @@ from app.sources import fetch_url, index_text
 
 log = logging.getLogger("kontekst.bot")
 
-HELP = """I am Kontekst. I answer from this chat, remembered facts, and project sources.
+USER_HELP = """I am Kontekst. Ask me questions in this chat.
 
+Slash commands are reserved for the administrator (@{admin}).
+In a group, mention me or reply to my message.
+Local answers on CPU can take 1–3 minutes — you will see a typing indicator."""
+
+ADMIN_HELP = """I am Kontekst. I answer from this chat, remembered facts, and project sources.
+
+Admin commands (only @{admin}):
 /source url — fetch and index a page
 /sources — list project sources
 /remember fact — store a lasting fact
@@ -24,9 +31,8 @@ HELP = """I am Kontekst. I answer from this chat, remembered facts, and project 
 /forget — clear this chat's history and memory
 /help — show this help
 
-In a group I reply when you mention me or reply to my message. To let me see the whole group chat, disable privacy mode in BotFather.
-
-Local qwen3:14b on CPU can take 1–3 minutes for the first answer — you will see a typing indicator while it works."""
+In a group I reply when you mention me or reply to my message.
+Local qwen3:14b on CPU can take 1–3 minutes for the first answer."""
 
 
 async def _keep_typing(message: Message) -> None:
@@ -57,6 +63,13 @@ def strip_mention(text: str, username: str) -> str:
     return text.replace(f"@{username}", "").replace(f"@{username.lower()}", "").strip()
 
 
+def sender_username(message: Message) -> str | None:
+    user = message.from_user
+    if user is None or not user.username:
+        return None
+    return user.username
+
+
 def register_handlers(
     dp: Dispatcher,
     *,
@@ -64,20 +77,39 @@ def register_handlers(
     conversation: Conversation,
     allow_private_urls: bool,
     username: str,
+    admin_usernames: tuple[str, ...],
 ) -> None:
+    admins = {name.lstrip("@").casefold() for name in admin_usernames}
+    admin_label = ", ".join(f"@{name.lstrip('@')}" for name in admin_usernames) or "@ArqTras"
+    primary_admin = admin_usernames[0].lstrip("@") if admin_usernames else "ArqTras"
+
+    def is_admin(message: Message) -> bool:
+        name = sender_username(message)
+        return bool(name) and name.casefold() in admins
+
+    async def require_admin(message: Message) -> bool:
+        if is_admin(message):
+            return True
+        await message.answer(f"That command is only available to the administrator ({admin_label}).")
+        return False
+
     @dp.message(CommandStart())
     async def start(message: Message) -> None:
+        help_text = ADMIN_HELP if is_admin(message) else USER_HELP
         await message.answer(
-            "Hi. I keep conversation memory: I learn facts from our exchange and from sources you add.\n\n"
-            + HELP
+            "Hi. I keep conversation memory from our chat and project sources.\n\n"
+            + help_text.format(admin=primary_admin)
         )
 
     @dp.message(Command("help", "pomoc"))
     async def help_command(message: Message) -> None:
-        await message.answer(HELP)
+        help_text = ADMIN_HELP if is_admin(message) else USER_HELP
+        await message.answer(help_text.format(admin=primary_admin))
 
     @dp.message(Command("sources", "zrodla"))
     async def list_sources(message: Message) -> None:
+        if not await require_admin(message):
+            return
         rows = await db.list_sources()
         if not rows:
             await message.answer("No project sources yet. Add one with /source or drop a file in the sources folder.")
@@ -87,6 +119,8 @@ def register_handlers(
 
     @dp.message(Command("source", "zrodlo"))
     async def add_url(message: Message) -> None:
+        if not await require_admin(message):
+            return
         payload = (message.text or "").split(maxsplit=1)
         if len(payload) < 2:
             await message.answer("Usage: /source https://example.com")
@@ -103,6 +137,8 @@ def register_handlers(
 
     @dp.message(Command("remember", "zapamietaj"))
     async def remember(message: Message) -> None:
+        if not await require_admin(message):
+            return
         payload = (message.text or "").split(maxsplit=1)
         if len(payload) < 2:
             await message.answer("Usage: /remember A fact I should keep.")
@@ -115,6 +151,8 @@ def register_handlers(
 
     @dp.message(Command("memory", "pamiec"))
     async def show_memory(message: Message) -> None:
+        if not await require_admin(message):
+            return
         facts = await db.list_memories(message.chat.id, 20)
         if not facts:
             await message.answer("Memory for this chat is empty.")
@@ -123,6 +161,8 @@ def register_handlers(
 
     @dp.message(Command("summarize", "podsumuj"))
     async def summarize(message: Message) -> None:
+        if not await require_admin(message):
+            return
         typing = asyncio.create_task(_keep_typing(message))
         try:
             await message.answer(await conversation.summarize(message.chat.id))
@@ -131,6 +171,8 @@ def register_handlers(
 
     @dp.message(Command("forget", "zapomnij"))
     async def forget(message: Message) -> None:
+        if not await require_admin(message):
+            return
         await db.clear_chat(message.chat.id)
         await message.answer("This chat's history and memory were cleared. Project sources remain.")
 
