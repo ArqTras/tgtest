@@ -38,6 +38,7 @@ async def db(tmp_path: Path):
 
 def test_admin_username_match(monkeypatch) -> None:
     monkeypatch.setenv("ADMIN_USERNAMES", "ArqTras, otherAdmin")
+    monkeypatch.setenv("ADMIN_USER_IDS", "484068913, 42")
     monkeypatch.setenv("DATA_DIR", "/tmp/kontekst-test-data")
     monkeypatch.setenv("SOURCES_DIR", "/tmp/kontekst-test-sources")
     settings = load_settings()
@@ -46,6 +47,12 @@ def test_admin_username_match(monkeypatch) -> None:
     assert settings.is_admin_username("otherAdmin")
     assert not settings.is_admin_username("someone_else")
     assert not settings.is_admin_username(None)
+    assert settings.is_admin_user_id(484068913)
+    assert settings.is_admin_user_id(42)
+    assert not settings.is_admin_user_id(999)
+    assert settings.is_admin(username="nobody", user_id=484068913)
+    assert settings.is_admin(username="ArqTras", user_id=1)
+    assert not settings.is_admin(username="nobody", user_id=1)
 
 
 def test_chunks_and_query() -> None:
@@ -116,6 +123,7 @@ async def test_status_page_and_admin_gate(db: Database, tmp_path: Path) -> None:
         llm_model="deepseek-chat",
         admin_token="secret",
         admin_usernames=("ArqTras",),
+        admin_user_ids=(484068913,),
         data_dir=tmp_path,
         sources_dir=tmp_path / "sources",
         http_host="127.0.0.1",

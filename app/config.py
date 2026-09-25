@@ -20,6 +20,7 @@ class Settings:
     llm_model: str
     admin_token: str
     admin_usernames: tuple[str, ...]
+    admin_user_ids: tuple[int, ...]
     data_dir: Path
     sources_dir: Path
     http_host: str
@@ -47,6 +48,14 @@ class Settings:
         needle = username.lstrip("@").casefold()
         return needle in {name.casefold() for name in self.admin_usernames}
 
+    def is_admin_user_id(self, user_id: int | None) -> bool:
+        if user_id is None:
+            return False
+        return int(user_id) in self.admin_user_ids
+
+    def is_admin(self, *, username: str | None = None, user_id: int | None = None) -> bool:
+        return self.is_admin_username(username) or self.is_admin_user_id(user_id)
+
 
 def _admin_usernames() -> tuple[str, ...]:
     raw = os.environ.get("ADMIN_USERNAMES", "ArqTras")
@@ -56,6 +65,20 @@ def _admin_usernames() -> tuple[str, ...]:
         if name:
             names.append(name)
     return tuple(names) or ("ArqTras",)
+
+
+def _admin_user_ids() -> tuple[int, ...]:
+    raw = os.environ.get("ADMIN_USER_IDS", "484068913")
+    ids: list[int] = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            ids.append(int(part))
+        except ValueError:
+            continue
+    return tuple(ids) or (484068913,)
 
 
 def load_settings() -> Settings:
@@ -77,6 +100,7 @@ def load_settings() -> Settings:
         llm_model=os.environ.get("LLM_MODEL", "qwen3-14b-bot").strip(),
         admin_token=os.environ.get("ADMIN_TOKEN", "").strip(),
         admin_usernames=_admin_usernames(),
+        admin_user_ids=_admin_user_ids(),
         data_dir=data_dir,
         sources_dir=sources_dir,
         http_host=os.environ.get("HTTP_HOST", "0.0.0.0").strip() or "0.0.0.0",

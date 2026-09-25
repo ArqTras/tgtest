@@ -78,12 +78,17 @@ def register_handlers(
     allow_private_urls: bool,
     username: str,
     admin_usernames: tuple[str, ...],
+    admin_user_ids: tuple[int, ...] = (),
 ) -> None:
     admins = {name.lstrip("@").casefold() for name in admin_usernames}
+    admin_ids = set(admin_user_ids)
     admin_label = ", ".join(f"@{name.lstrip('@')}" for name in admin_usernames) or "@ArqTras"
     primary_admin = admin_usernames[0].lstrip("@") if admin_usernames else "ArqTras"
 
     def is_admin(message: Message) -> bool:
+        user = message.from_user
+        if user is not None and user.id in admin_ids:
+            return True
         name = sender_username(message)
         return bool(name) and name.casefold() in admins
 

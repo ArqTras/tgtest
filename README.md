@@ -68,7 +68,7 @@ Bot podchwytuje nowe pliki w ciągu minuty. To samo robi `/zrodlo https://...` i
 
 ## Rozmowa
 
-Zwykłe pytania w czacie są otwarte dla wszystkich. Slash-komendy (`/source`, `/sources`, `/remember`, `/memory`, `/summarize`, `/forget` i polskie aliasy) działają **tylko** dla administratora z `ADMIN_USERNAMES` (domyślnie `@ArqTras`).
+Zwykłe pytania w czacie są otwarte dla wszystkich. Slash-komendy (`/source`, `/sources`, `/remember`, `/memory`, `/summarize`, `/forget` i polskie aliasy) działają **tylko** dla administratora (`ADMIN_USERNAMES`, domyślnie `@ArqTras`, oraz `ADMIN_USER_IDS`, domyślnie `484068913`).
 
 - `/zrodlo https://adres` — pobierz i zindeksuj stronę
 - `/zrodla` — lista źródeł
