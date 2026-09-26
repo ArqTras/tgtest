@@ -9,7 +9,7 @@ from app.config import Settings, load_settings
 from app.conversation import MISSING_KEY, Conversation
 from app.db import Database
 from app.http_admin import build_app
-from app.llm import completions_url, parse_facts
+from app.llm import completions_url, ollama_chat_url, parse_facts, _strip_think_blocks
 from app.sources import scan_directory
 from app.textutil import chunk_text, fts_query, url_is_allowed
 
@@ -61,6 +61,9 @@ def test_chunks_and_query() -> None:
     assert '"beacon"' in fts_query("Where is Beacon?")
     assert completions_url("https://api.deepseek.com") == "https://api.deepseek.com/chat/completions"
     assert completions_url("https://api.openai.com/v1") == "https://api.openai.com/v1/chat/completions"
+    assert ollama_chat_url("http://ollama:11434/v1") == "http://ollama:11434/api/chat"
+    assert ollama_chat_url("https://api.deepseek.com") is None
+    assert _strip_think_blocks("<think>plan</think>Hello") == "Hello"
 
 
 def test_blocks_local_urls() -> None:

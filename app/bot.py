@@ -18,7 +18,7 @@ USER_HELP = """I am Kontekst. Ask me questions in this chat.
 
 Slash commands are reserved for the administrator (@{admin}).
 In a group, mention me or reply to my message.
-Local answers on CPU can take 1–3 minutes — you will see a typing indicator."""
+Local answers on CPU can take several minutes — you will see a typing indicator."""
 
 ADMIN_HELP = """I am Kontekst. I answer from this chat, remembered facts, and project sources.
 
@@ -32,7 +32,7 @@ Admin commands (only @{admin}):
 /help — show this help
 
 In a group I reply when you mention me or reply to my message.
-Local qwen3:14b on CPU can take 1–3 minutes for the first answer."""
+Local qwen3:14b on CPU can take several minutes for the first answer."""
 
 
 async def _keep_typing(message: Message) -> None:

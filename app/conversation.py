@@ -37,8 +37,10 @@ class Conversation:
         ):
             count = await self.db.message_count(chat_id)
             if count % (self.learn_every * 2) == 0:
-                # Do not block the Telegram reply on a second slow local-model call.
-                self._last_learn_task = asyncio.create_task(self._learn_safe(chat_id, text, answer))
+                # Never stack a second Ollama job behind an in-flight learn (NUM_PARALLEL=1).
+                prev = getattr(self, "_last_learn_task", None)
+                if prev is None or prev.done():
+                    self._last_learn_task = asyncio.create_task(self._learn_safe(chat_id, text, answer))
         return answer
 
     async def drain_learning(self) -> None:
@@ -63,7 +65,7 @@ class Conversation:
             *history,
         ]
         try:
-            answer = await self.model.complete(messages)
+            answer = await self.model.complete(messages, max_tokens=400)
         except RuntimeError as exc:
             return f"Could not get a model reply. {exc}"
         return _fit_telegram(answer or "I do not have an answer right now.")

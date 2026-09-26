@@ -32,6 +32,8 @@ chmod +x install.sh scripts/ollama-init.sh
 ./install.sh
 ```
 
+On CPU, the first answer from qwen3:14b can take several minutes. Default `LLM_TIMEOUT` is 900s; thinking mode is disabled for Ollama.
+
 `install.sh` starts three things: **Ollama**, a one-shot pull of **qwen3:14b** (as `qwen3-14b-bot`), and the **Kontekst** bot. The bot talks to `http://ollama:11434/v1` by default — no Groq/DeepSeek key required.
 
 Status: [http://127.0.0.1:8787](http://127.0.0.1:8787)

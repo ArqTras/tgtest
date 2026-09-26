@@ -4,7 +4,7 @@ set -eu
 export OLLAMA_HOST="${OLLAMA_HOST:-http://ollama:11434}"
 BASE_MODEL="${OLLAMA_BASE_MODEL:-qwen3:14b}"
 LOCAL_MODEL="${OLLAMA_LOCAL_MODEL:-qwen3-14b-bot}"
-NUM_CTX="${OLLAMA_NUM_CTX:-8192}"
+NUM_CTX="${OLLAMA_NUM_CTX:-4096}"
 NUM_THREAD="${OLLAMA_NUM_THREAD:-16}"
 
 echo "==> Waiting for Ollama at ${OLLAMA_HOST}"
@@ -27,6 +27,8 @@ cat >"${TMP}" <<EOF
 FROM ${BASE_MODEL}
 PARAMETER num_ctx ${NUM_CTX}
 PARAMETER num_thread ${NUM_THREAD}
+PARAMETER num_predict 400
+PARAMETER temperature 0.4
 EOF
 ollama create "${LOCAL_MODEL}" -f "${TMP}"
 rm -f "${TMP}"

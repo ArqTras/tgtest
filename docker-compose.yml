@@ -32,7 +32,7 @@ services:
       OLLAMA_HOST: http://ollama:11434
       OLLAMA_BASE_MODEL: ${OLLAMA_BASE_MODEL:-qwen3:14b}
       OLLAMA_LOCAL_MODEL: ${OLLAMA_LOCAL_MODEL:-qwen3-14b-bot}
-      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-8192}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-4096}
       OLLAMA_NUM_THREAD: ${OLLAMA_NUM_THREAD:-16}
     volumes:
       - ./scripts/ollama-init.sh:/ollama-init.sh:ro
@@ -56,7 +56,7 @@ services:
       LLM_BASE_URL: ${LLM_BASE_URL:-http://ollama:11434/v1}
       LLM_API_KEY: ${LLM_API_KEY:-ollama}
       LLM_MODEL: ${LLM_MODEL:-qwen3-14b-bot}
-      LLM_TIMEOUT: ${LLM_TIMEOUT:-300}
+      LLM_TIMEOUT: ${LLM_TIMEOUT:-900}
       ADMIN_TOKEN: ${ADMIN_TOKEN:-}
       ADMIN_USERNAMES: ${ADMIN_USERNAMES:-ArqTras}
       ADMIN_USER_IDS: ${ADMIN_USER_IDS:-484068913}
@@ -64,7 +64,7 @@ services:
       DATA_DIR: /data
       SOURCES_DIR: /sources
       ALLOW_PRIVATE_URLS: ${ALLOW_PRIVATE_URLS:-false}
-      LEARN_EVERY: ${LEARN_EVERY:-1}
+      LEARN_EVERY: ${LEARN_EVERY:-3}
     volumes:
       - kontekst-data:/data
       - kontekst-sources:/sources
